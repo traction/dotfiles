@@ -1,0 +1,83 @@
+# Handle the fact that this file will be used with multiple OSs
+platform=`uname`
+if [[ $platform = 'Linux' ]]; then
+  alias a='ls -lth --color'
+  alias ls='ls --color=auto'
+  export EDITOR="vim"
+  alias get='sudo apt-get install'
+elif [[ $platform = 'Darwin' ]]; then
+  alias a='ls -lthG' # sort by date modified
+  alias ls='ls -G'  # OS-X SPECIFIC - the -G command in OS-X is for colors, in Linux it's no groups
+  export EDITOR='mate -w'  # OS-X SPECIFIC - TextMate, w is to wait for TextMate window to close
+  alias lock="open /System/Library/Frameworks/ScreenSaver.framework/Versions/A/Resources/ScreenSaverEngine.app"
+  alias flushdns="dscacheutil -flushcache"
+
+  if [ -d /Applications/MacVim.app/ ]; then
+    # use MacVim over built-in Mac OS version
+    alias vim='/Applications/MacVim.app/Contents/MacOS/Vim'
+    export EDITOR='vim -f'
+    alias vimdiff="vim -d"
+  fi
+fi
+
+# ruby (irb)
+alias irb='irb --readline -r irb/completion'
+
+# Navigation and directory listing
+alias ..='cd ..'
+alias ...='cd .. ; cd ..'
+alias ll='ls -hl'
+alias l='ls -hl'
+alias la='ls -ah'
+alias lla='ls -lah'
+alias lt='ls -th'
+alias llt='ls -lth'
+alias q='exit'
+
+# git shortcuts
+alias gl='git pull --ff-only'
+alias gp='git push'
+alias gpt='git push --tags'
+alias gd='git diff'
+alias gdc='git diff --cached'
+alias gdt='git difftool'
+alias gdtc='git difftool --cached'
+alias ga='git add'
+alias gaa='git add --all .'
+alias gap='git add -p'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gco='git checkout'
+alias g='git status -sb'
+alias gs='git status -sb'
+alias grm='git status --porcelain | ruby -e "puts STDIN.read.scan(/^\\s+D\\s+(.+)\$/).join(\"\\n\")" | xargs git rm'
+alias gg="git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %aN: %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative"
+alias ggg="git log --graph --pretty=format:'%C(yellow)%h %Creset(%cr)%nAuthor: %C(green)%aN <%aE>%Creset%n%n    %Cblue%s%Creset%n'"
+alias gggg="git log --pretty=format:'%C(yellow)%h %Creset(%cr) %C(green)%aN <%aE>%Creset%n%Cblue%s%Creset%n ' --numstat"
+alias gitmine="git log --author='$(git config --get user.name)' --pretty=format:'%Cgreen%ad%Creset %s%C(yellow)%d%Creset %Cred(%h)%Creset' --date=short"
+alias git-delete-merged-branches="git branch --merged master | cut -b 3- | grep --invert-match '^master$' | xargs git branch -d"
+
+# git pairing
+alias me_and="git-pair me_and"
+alias just_me="git-pair just_me"
+
+# Misc
+alias grep='grep -i'  # Case insensitive grep
+alias f='find . -iname'
+alias ducks='du -cksh * | sort -rn' # Lists folders and files sizes in the current folder
+alias m='more'
+alias df='df -h'
+alias sha1="openssl sha1"
+alias bi="bundle install"
+alias be="bundle exec"
+alias j="jobs"
+alias v="vim"
+
+# macirb doesn't like the irbrc
+alias macirb="macirb -f"
+
+# Shows most used commands, cool script I got this from: http://lifehacker.com/software/how-to/turbocharge-your-terminal-274317.php
+alias profileme="history | awk '{print \$2}' | awk 'BEGIN{FS=\"|\"}{print \$1}' | sort | uniq -c | sort -n | tail -n 20 | sort -nr"
+
+# kill all detached screens
+alias killscreens="screen -ls | grep 'detached' | cut -f 2 | xargs -I % screen -S % -X quit"

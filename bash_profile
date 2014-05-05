@@ -1,18 +1,13 @@
 #echo "=> Loading `pwd`/bash_profile"
 
-source ~/.bash/aliases
-# source ~/.bash/completions
-source ~/.bash/paths
+source ~/.anyshell/paths
 source ~/.bash/config
-
-# Add bin directory to path
-if [ -d ~/bin ]; then
- export PATH=:~/bin:$PATH
-fi
+source ~/.anyshell/aliases
+source ~/.anyshell/functions
 
 # Load in .bashrc
 if [ -f ~/.bashrc ]; then
-  . ~/.bashrc
+  source ~/.bashrc
 fi
 source ~/.bash/colors
 source ~/.bash/prompt
@@ -20,8 +15,11 @@ source ~/.bash/prompt
 export rvm_path="$HOME/.rvm"
 # Enable RVM
 [[ -s $rvm_path/scripts/rvm ]] && source $rvm_path/scripts/rvm
-[[ -r $rvm_path/scripts/completion ]] && . $rvm_path/scripts/completion
+[[ -r $rvm_path/scripts/completion ]] && source $rvm_path/scripts/completion
 
+if [ -f ~/.localrc ]; then
+  source ~/.localrc
+fi
 
 # Notes: ----------------------------------------------------------
 # When you start an interactive shell (log in, open terminal or iTerm in OS X, 

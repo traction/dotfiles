@@ -1,181 +1,183 @@
-" ================
-" Ruby stuff
-" ================
-syntax on                 " Enable syntax highlighting
-filetype plugin indent on " Enable filetype-specific indenting and plugins
+set encoding=utf-8
+execute pathogen#infect()
 
-augroup myfiletypes
-  " Clear old autocmds in group
-  autocmd!
-  " autoindent with two spaces, always expand tabs
-  autocmd FileType ruby,eruby,yaml set ai sw=2 sts=2 et
-augroup END
-" ================
+" Enable syntax highlighting
+syntax on
 
-let mapleader = ","
+" set t_Co=256
+set background=dark
+colorscheme base16-railscasts
 
-vmap <Leader>b :<C-U>!git blame <C-R>=expand("%:p") <CR> \| sed -n <C-R>=line("'<") <CR>,<C-R>=line("'>") <CR>p <CR>
-map <Leader>cc :!cucumber %<CR>
-map <Leader>co :TComment<CR>
-map <Leader>d odebugger<cr>puts 'debugger'<esc>:w<cr>
-map <Leader>gac :Gcommit -m -a ""<LEFT>
-map <Leader>gc :Gcommit -m ""<LEFT>
-map <Leader>gs :Gstatus<CR>
-map <Leader>f :sp spec/factories.rb<CR>
-map <Leader>fa :sp test/factories.rb<CR>
-map <Leader>h :FuzzyFinderTextMate<CR>
-map <Leader>l :!ruby <C-r>% \| less<CR>
-map <Leader>m :Rmodel 
-map <Leader>n ,w,t
-map <Leader>o ?def <CR>:nohl<CR>w"zy$:!ruby -I"test" <C-r>% -n <C-r>z<CR>
-map <Leader>p :set paste<CR>i
-map <Leader>rb :Rake!<CR>
-map <Leader>rf :FuzzyFinderTextMateRefreshFiles<CR>
-map <Leader>rw :%s/\s\+$//
-map <Leader>sc :sp db/schema.rb<cr>
-map <Leader>sm :RSmodel 
-map <Leader>su :RSunittest 
-map <Leader>sv :RSview 
-map <Leader>t :!ruby -I"test" -I"spec" %<CR>
-map <Leader>u :Runittest 
-map <Leader>vc :RVcontroller 
-map <Leader>vf :RVfunctional 
-map <Leader>vi :tabe ~/.vimrc<CR>
-map <Leader>vu :RVunittest 
-map <Leader>vm :RVmodel 
-map <Leader>vv :RVview 
-map <Leader>w <C-w>w
+highlight clear Search
+highlight Search cterm=reverse
+highlight IncSearch ctermfg=black
+highlight CursorColumn cterm=NONE ctermbg=darkred ctermfg=white guibg=darkred guifg=white
+highlight CursorLine cterm=NONE ctermbg=darkred ctermfg=white guibg=darkred guifg=white
 
-map <C-h> :nohl<CR>
-imap <C-l> <Space>=><Space>
-map <C-s> <esc>:w<CR>
-imap <C-s> <esc>:w<CR>
-map <C-t> <esc>:tabnew<CR>
-map <C-x> <C-w>c
-map <C-n> :cn<CR>
-map <C-p> :cp<CR>
+let go_vim = $GOROOT . '/misc/vim'
+if isdirectory(go_vim)
+  " Clear filetype flags before changing runtimepath to force Vim to reload them.
+  filetype off
+  filetype plugin indent off
+  set runtimepath+=$GOROOT/misc/vim
+endif
 
+" Enable filetype-specific indenting and plugins
+filetype plugin indent on
+
+" ruby: autoindent with two spaces, always expand tabs
+autocmd FileType ruby,eruby,yaml set sw=2 sts=2 et
+" recognize special ruby files
+autocmd BufRead,BufNewFile Capfile set filetype=ruby
+" recognize .md as markdown
+autocmd BufRead,BufNewFile *.md set filetype=markdown
+autocmd FileType markdown setl wrap linebreak nolist
+autocmd FileType text setl wrap linebreak nolist
+" modify keyword pattern in SASS documents
+autocmd FileType sass setl iskeyword+=-
+" format go files on save
+autocmd FileType go autocmd BufWritePre <buffer> Fmt
+autocmd FileType go set sw=4 ts=4 noet
+" protos
+autocmd BufRead,BufNewFile *.proto set filetype=protobuf
+autocmd FileType protobuf setl sw=4 ts=4 noet
+
+let mapleader = "\<Space>"
+nnoremap ; :
 
 set nocompatible
 set backspace=indent,eol,start " allow backspacing over everything in insert mode
-set history=500		" keep 500 lines of command line history
-set ruler		" show the cursor position all the time
-set showcmd		" display incomplete commands
+set history=500 " keep 500 lines of command line history
 set autoindent
-set showmatch
+set ruler
 set nowrap
-set backupdir=~/.tmp
-set directory=~/.tmp " Don't clutter my dirs up with swp and tmp files
-set autoread
-set wmh=0
-set viminfo+=!
+set linebreak " if wrap is turned on, break lines at whitespace
+set noswapfile
+set nobackup
 set guioptions-=T
-set guifont=Triskweline_10:h10
-set et
+set et " expand tabs
 set sw=2
 set smarttab
-set noincsearch
+set incsearch " highlight search term incrementally
 set ignorecase smartcase
-set laststatus=2  " Always show status line.
-set number 
+set laststatus=2 " Always show status line.
+set number
 set gdefault " assume the /g flag on :s substitutions to replace all matches in a line
-set autoindent " always set autoindenting on
-
-" Edit another file in the same directory as the current file
-" uses expression to extract path from current file's path
-map <Leader>e :e <C-R>=expand("%:p:h") . '/'<CR>
-map <Leader>s :split <C-R>=expand("%:p:h") . '/'<CR>
-map <Leader>v :vnew <C-R>=expand("%:p:h") . '/'<CR>
-
-" Set the tag file search order
-set tags=./tags;
-
-" Use _ as a word-separator
-set iskeyword-=_
-
-" Use Ack instead of grep
-set grepprg=ack
-
-" Make the omnicomplete text readable
-:highlight PmenuSel ctermfg=black
-
-" Fuzzy finder: ignore stuff that can't be opened, and generated files
-let g:fuzzy_ignore = "*.png;*.PNG;*.JPG;*.jpg;*.GIF;*.gif;vendor/**;coverage/**;tmp/**;rdoc/**"
-
-" Highlight the status line
-highlight StatusLine ctermfg=blue ctermbg=yellow
-
-" Format xml files
-au FileType xml exe ":silent 1,$!xmllint --format --recover - 2>/dev/null" 
-
+set hidden " allow hidden unsaved buffers
 set shiftround " When at 3 spaces and I hit >>, go to 4, not 5.
+" Disabled for now because it seems to suspend vim with some commands
+" set shellcmdflag=-ic " Use interactive shell within vim (enables zsh aliases and functions)
+set whichwrap+=<,>,h,l,[,] " let cursor keys wrap around lines
+set hlsearch " highlight search matches
+set mouse=a " use mouse if enabled
+set clipboard=unnamed " use Mac clipboard for yank/paste/etc.
+set pumheight=15 " Limit completion popup menu height
+set shell=bash " Seems to be necessary to get Rails.vim to use the correct version of Ruby
+set omnifunc=syntaxcomplete#Complete " Enable omnicompletion
+set ttimeoutlen=0 " Shorter key code delay to speed up entering normal mode with ESC
+set modelines=1 " Use modlines at the end of the file
 
-set nofoldenable " Fuck code folding...
+" Ignore various files in open
+" Images
+set wildignore+=*.jpg,*.jpeg,*.gif,*.png,*.ico,*.psd,*.pdf
+" Other binaries
+set wildignore+=*.sqlite3,*.ipa
+" Xcode stuff
+set wildignore+=*.xcodeproj/*,*.xib,*.cer,*.icns
+" Misc temp stuff
+set wildignore+=*.pid,*/tmp/*
+" node modules dir
+set wildignore+=*/node_modules/*
 
-command Q q " Bind :Q to :q
-command Qall qall 
+" show tabs and nbsp
+set list listchars=tab:» ,nbsp:•
+highlight SpecialKey ctermfg=grey guifg=grey
 
-"set statusline+=%<%f\ %h%m%r%{fugitive#statusline()}%=%-14.(%l,%c%V%)\ %P
+" highlight trailing whitespace
+highlight ExtraWhitespace ctermbg=darkgreen guibg=lightgreen ctermfg=grey guifg=grey
+match ExtraWhitespace /\s\+$/
 
+" Minimum window sizes
+set winwidth=84
+" We have to have a winheight bigger than we want to set winminheight. But if
+" we set winheight to be huge before winminheight, the winminheight set will
+" fail.
+set winheight=20
+set winminheight=20
+set winheight=999
 
-" ========================================================================
-" End of things set by ben.
-" ========================================================================
+" grep settings for Greplace, etc
+set grepprg=ag
+let g:grep_cmd_opts = '--line-numbers --noheading'
 
-"" Disable all blinking:
-set guicursor+=a:blinkon0
-"" Remove previous setting:
-set guicursor-=a:blinkon0
-"" Restore default setting:
-set guicursor&
+"""" SPECIAL KEYS
 
-colorscheme emacs
-" ========================================================================
-" End of things set by me.
-" ========================================================================
+" SELECTION KEYS
+" highlight last inserted text
+nnoremap gV `[v`]
 
+" CONTROL KEYS
+" control-w to write file in insert mode
+inoremap <C-w> <C-o>:w<CR>
+" close window
+nnoremap <C-x> <C-w>q
+" Type C-A after some math to calculate the result
+ino <C-A> <C-O>yiW<End>=<C-R>=<C-R>0<CR>
 
+" LEADER KEYS
+" leader-w to write file
+nnoremap <leader>w :w<CR>
+" leader-s to toggle highlighting on/off, and show current value.
+nnoremap <leader>s :set hlsearch! hlsearch?<CR>
+" leader-c to toggle cursor line
+nnoremap <leader>c :set cursorcolumn! cursorline!<CR>
+" Switch between the last two files
+nnoremap <leader><leader> <c-^>
+" Open new vertical split
+nnoremap <leader>v <C-w>v<C-w>l
+" CommandT (refresh cache every time)
+map <leader>t :CommandTFlush<cr>\|:CommandT<cr>
+" Search in project/directory
+nnoremap <leader>/ :Ag<Space>
+" Search current word in project/directory
+" With or without word boundaries
+function SearchInProject()
+  let word = expand("<cword>")
+  let @/=word
+  set hls
+  exec "Ag " . word
+endfunction
 
+function SearchWordInProject()
+  let word = expand("<cword>")
+  let @/='\<' . word . '\>'
+  set hls
+  exec "Ag '\\b" . word . "\\b'"
+endfunction
 
+nnoremap <leader>f :call SearchInProject()<CR>
+nnoremap <leader>F :call SearchWordInProject()<CR>
 
+" Command-mode expansion for directory of current file
+cnoremap %% <C-R>=expand('%:h').'/'<cr>
+" :Q to quit all open buffers
+nnoremap :Q :qall
 
+" close vim if the only window left open is a NERDTree
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
+" Let ESC close command-t (and then remap arrows for navigation)
+let g:CommandTCancelMap = ['<ESC>', '<C-c>']
+let g:CommandTSelectNextMap = ['<C-n>', '<C-j>', '<ESC>OB']
+let g:CommandTSelectPrevMap = ['<C-p>', '<C-k>', '<ESC>OA']
 
+" airline config
+let g:airline_powerline_fonts = 1
 
-
-
-
-" Switch syntax highlighting on, when the terminal has colors
-" Also switch on highlighting the last used search pattern.
-if &t_Co > 2 || has("gui_running")
-  syntax on
-  set hlsearch
-endif
-
-" Only do this part when compiled with support for autocommands.
-if has("autocmd")
-
-  " Enable file type detection.
-  " Use the default filetype settings, so that mail gets 'tw' set to 72,
-  " 'cindent' is on in C files, etc.
-  " Also load indent files, to automatically do language-dependent indenting.
-  filetype plugin indent on
-
-  " Put these in an autocmd group, so that we can delete them easily.
-  augroup vimrcEx
-  au!
-
-  " For all text files set 'textwidth' to 78 characters.
-  autocmd FileType text setlocal textwidth=78
-
-  " When editing a file, always jump to the last known cursor position.
-  " Don't do it when the position is invalid or when inside an event handler
-  " (happens when dropping a file on gvim).
-  autocmd BufReadPost *
-    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-    \   exe "normal g`\"" |
-    \ endif
-
-  augroup END
-
-endif " has("autocmd")
+function LocalSettings()
+  let localconfig = $HOME . '/.vimrc.local'
+  if filereadable(localconfig)
+    so `=localconfig`
+  endif
+endfunction
+call LocalSettings()

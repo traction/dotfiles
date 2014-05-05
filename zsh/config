@@ -1,55 +1,58 @@
-if [[ -n $SSH_CONNECTION ]]; then
-  export PS1='%m:%3~$(git_info_for_prompt)%# '
-else
-  export PS1='%3~$(git_info_for_prompt)%# '
-fi
+# user functions
+# fpath=(~/.zsh/functions $fpath)
+# autoload anything in the "functions" dir, with -U flag to prevent user aliases from interfering with the functions
+#autoload -U ~/.zsh/functions/*(:t)
 
-export EDITOR='vim'
-export PATH="~/bin:/usr/local/bin:/usr/local/sbin:/usr/local/mysql/bin:/usr/local/git/bin:$PATH"
-export MANPATH="/usr/local/man:/usr/local/mysql/man:/usr/local/git/man:$MANPATH"
+autoload colors ; colors
 
-fpath=(~/.zsh/functions $fpath)
+# misc settings
+setopt NO_BG_NICE # don't nice background tasks
+setopt NO_HUP # don't send the HUP signal to running jobs when the shell exits
+setopt IGNORE_EOF # do not exit on end-of-file
+setopt NO_LIST_BEEP # don't beep on an ambiguous completion
+setopt LOCAL_OPTIONS # allow functions to have local options
+setopt LOCAL_TRAPS # allow functions to have local traps
+setopt PROMPT_SUBST # run expansions and substitutions in prompts
+unsetopt correct_all # don't autocorrect
+unsetopt correct # don't autocorrect commands
+setopt COMPLETE_IN_WORD # cursor stays in place and completion is done from both ends
+setopt RMSTARSILENT # don't confirm an rm *
+setopt CDABLE_VARS
+setopt CLOBBER # allows `>' redirection to truncate existing files, and `>>' to create files
+setopt EXTENDED_GLOB # treat the `#', `~' and `^' characters as part of patterns for filename generation
+setopt NULL_GLOB # if a pattern has no matches, don't report an error
 
-autoload -U ~/.zsh/functions/*(:t)
-
+# history settings
 HISTFILE=~/.zsh_history
 HISTSIZE=1000
 SAVEHIST=1000
-
-setopt NO_BG_NICE # don't nice background tasks
-setopt NO_HUP
-setopt NO_LIST_BEEP
-setopt LOCAL_OPTIONS # allow functions to have local options
-setopt LOCAL_TRAPS # allow functions to have local traps
-setopt HIST_VERIFY
-setopt SHARE_HISTORY # share history between sessions ???
+setopt SHARE_HISTORY # share history between sessions (implies INC_APPEND_HISTORY)
 setopt EXTENDED_HISTORY # add timestamps to history
-setopt PROMPT_SUBST
-setopt CORRECT
-setopt COMPLETE_IN_WORD
-setopt IGNORE_EOF
-setopt RMSTARSILENT # don't confirm an rm *
-
-setopt APPEND_HISTORY # adds history
-setopt INC_APPEND_HISTORY SHARE_HISTORY  # adds history incrementally and share it across sessions
 setopt HIST_IGNORE_ALL_DUPS  # don't record dupes in history
-setopt HIST_REDUCE_BLANKS
+setopt HIST_REDUCE_BLANKS # remove superfluous blanks
+setopt HIST_VERIFY # don't execute history expansions directly
 
-zle -N newtab
+# fix a few key bindings
+bindkey '^[^[[D' backward-word # option-left
+bindkey '^[^[[C' forward-word # option-right
+bindkey '^[[3~' delete-char # forward delete key
 
-bindkey '^[^[[D' backward-word
-bindkey '^[^[[C' forward-word
-bindkey '^[[5D' beginning-of-line
-bindkey '^[[5C' end-of-line
-bindkey '^[[3~' delete-char
-bindkey '^[^N' newtab
-bindkey '^?' backward-delete-char 
+# Bind Ctrl-O to clear screen
+bindkey '^O' clear-screen
 
-# Set screen titles to last run command
-setopt extended_glob
-preexec () {
-  if [[ "$TERM" == "screen" ]]; then
-    local CMD=${1[(wr)^(*=*|sudo|-*)]}
-    echo -ne "\ek$CMD\e\\"
+# Ctrl-Z to foreground!
+# http://sheerun.net/2014/03/21/how-to-boost-your-vim-productivity/
+fancy-ctrl-z () {
+  if [[ $#BUFFER -eq 0 ]]; then
+    fg
+    zle redisplay
+  else
+    zle push-input
+    zle clear-screen
   fi
 }
+zle -N fancy-ctrl-z
+bindkey '^Z' fancy-ctrl-z
+
+# Display tabs as 4 spaces
+tabs -4

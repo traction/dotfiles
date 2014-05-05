@@ -1,5 +1,17 @@
---ignore-dir=rails
-
 # Add the .rake extension to ruby types
 --type-add
 ruby=.rake
+--type-set
+jst=.jst
+--type-set
+cuke=.feature
+--type-set
+coffee=.coffee
+--type-set
+sass=.sass
+--type-add
+sass=.scss
+--type-set
+handlebars=.handlebars
+--type-set
+slim=.slim

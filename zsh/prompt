@@ -1,0 +1,65 @@
+function prompt_info(){
+  local host='%{$terminfo[bold]$fg[cyan]%}%m%{$reset_color%}'
+  local current_dir='%{$fg[green]%}${PWD/#$HOME/~}%{$reset_color%}'
+  local rvm_ruby='%{$fg[red]%}$(rvm-prompt-wrapper)%{$reset_color%}'
+  local git_info='$(git_info)'
+  echo "${host}:${current_dir} ${rvm_ruby} ${git_info}
+%{$fg[white]%}➤%{$reset_color%} "
+}
+function rprompt_info(){
+  local return_code="%(?..%{$fg[red]%}%?↵%{$reset_color%})"
+  echo "%{$(echotc UP 1)%}${return_code}%{$(echotc DO 1)%}"
+}
+
+function git_info(){
+local git_rev="$(parse_git_revision)"
+  if [[ "x" != "x$git_rev" ]]; then
+    echo "%{$fg[yellow]%}$git_rev%{$reset_color%} %{$fg[cyan]%}$(git config user.email)%{$reset_color%}"
+  else
+    echo ""
+  fi
+}
+
+PROMPT="$(prompt_info)"
+RPROMPT="$(rprompt_info)"
+PS2='>'
+PS3='?'
+PS4='+'
+
+function title() {
+  print -Pn "\e]2;%~ - %n@%m\a"
+}
+
+# precmd is called just before the prompt is printed
+function precmd() {
+  tmux-set-window-name
+  if [[ "$TERM" == "screen" ]]; then
+    local SHELLNAME=$(basename $SHELL)
+    print -Pn "\ek$SHELLNAME\e\\" # set screen title
+    print -Pn "\e]2;$SHELLNAME\a" # must (re)set xterm title
+  else
+    title
+  fi
+}
+
+# preexec is called just before any command line is executed
+function preexec() {
+  local CMD=${1[(wr)^(*=*|sudo|-*)]}
+  if [[ "$CMD" == "ssh" ]]; then
+    tmux-set-window-name "${1[(ws: :)2]}"
+  elif [[ "$CMD" == "fg" ]]; then
+    local fg_cmd=$(basename `jobs | grep '+ suspended' | sed -e 's/.*suspended *\([^ ]*\).*/\1/'`)
+    tmux-set-window-name "$(basename $PWD):$fg_cmd"
+  else
+    tmux-set-window-name "$(basename $PWD):$CMD"
+  fi
+  if [[ "$TERM" == "screen" ]]; then
+    echo -ne "\ek$CMD\e\\"
+  else
+    title
+  fi
+}
+
+function chpwd() {
+  tmux-set-window-name
+}

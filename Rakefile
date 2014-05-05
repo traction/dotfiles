@@ -1,4 +1,5 @@
 require 'rake'
+require 'pathname'
 require 'ftools' if RUBY_VERSION < "1.9"
 
 hostname =  `printf ${HOSTNAME%%.*}`
@@ -15,10 +16,13 @@ namespace :install do
     replace_all = false
     Dir['*'].each do |file|
       next if %w[Rakefile README LICENSE bin].include? file or %r{(.*)\.pub} =~ file
-    
-      if File.exist?(File.join(ENV['HOME'], ".#{file}")) || (File.symlink? File.join(ENV['HOME'], ".#{file}"))
+
+      dest = File.join(ENV['HOME'], ".#{file}")
+      if File.exist?(dest) || File.symlink?(dest)
         if replace_all
           replace_file(file, timestamp)
+        elsif Pathname.new(dest).realpath.to_s == File.join(ENV['PWD'], file)
+          puts "correct symlink already exists for "+File.join(ENV['PWD'], file)
         else
           print "overwrite ~/.#{file}? [ynaq] "
           case $stdin.gets.chomp
@@ -39,39 +43,25 @@ namespace :install do
     end
 
     # link files in bin dir
+    # disabling backup because existing files are not overwritten anyway
+    #if `command ls -1 "#{home}/bin" 2>/dev/null` != ''
+    #  # make backup if bin dir is not empty
+    #  system %Q{mkdir -p "$HOME/_dot_backups/#{timestamp}/bin/"}
+    #end
     system %Q{mkdir -p "#{home}/bin"}
-    system %Q{mkdir -p "$HOME/_dot_backups/#{timestamp}/bin/"}
-  
+
     Dir['bin/*'].each do |file|
       filepath = File.expand_path("#{home}/#{file}")
-      if !(File.exist? filepath) || (File.symlink? filepath)
+      if !(File.exist? filepath)
         puts "linking ~/#{file}"
-        system %Q{cp -RLi "#{home}/#{file}" "#{home}/_dot_backups/#{timestamp}/#{file}"}
-        system %Q{rm "#{home}/#{file}"}
         system %Q{ln -s "$PWD/#{file}" "#{home}/#{file}"}
       else
-        puts "Existing ~/#{file} exists. Skipping..." 
+        puts "Existing ~/#{file} exists. Skipping..."
+        # could back up here
+        # system %Q{cp -RLi "#{home}/#{file}" "#{home}/_dot_backups/#{timestamp}/#{file}"}
+        # system %Q{rm "#{home}/#{file}"}
       end
     end
-  
-    # Handle ssh pubkey on its own
-    orginal_filename = File.expand_path("#{home}/.ssh/id_dsa.pub")
-
-    pubfile_exists = File.exist? orginal_filename
-    pubfile_symlink = File.symlink? orginal_filename
-  
-    if pubfile_exists && !pubfile_symlink
-      puts "Linking public ssh key"
-      system %Q{mkdir -p "#{home}/.ssh/dotfiles_backup"}
-      system %Q{cp "#{orginal_filename}" "#{home}/.ssh/dotfiles_backup/id_dsa.pub"}
-      system %Q{mv "#{orginal_filename}" "$PWD/#{hostname}.pub"}
-      system %Q{ln -s "$PWD/#{hostname}.pub" "#{orginal_filename}"}
-    elsif !pubfile_exists
-      puts "No existing ssh key. Exiting..."
-    elsif pubfile_symlink
-      puts "Existing linked ssh key. Skipping..."
-    end
-
   end
 
   desc "Create symbolic link for kaleidoscope integration with git difftool"
@@ -95,15 +85,21 @@ namespace :install do
       puts "please install ksdiff before runnning this tool"
     end
   end
+
+  desc "Set up command-T plugin for vim"
+  task :commandt do
+    path = File.join(File.dirname(__FILE__), "vim/bundle/command-t/ruby/command-t")
+    puts `cd #{path} && ruby extconf.rb && make`
+  end
 end
 
 def replace_file(file, timestamp)
   system %Q{mkdir -p "$HOME/_dot_backups/#{timestamp}"}
   if File.exist?(File.join(ENV['HOME'], ".#{file}"))
-		puts "Backing up $HOME/.#{file} to $HOME/_dot_backups/#{timestamp}/#{file}"
-  	system %Q{cp -RLi "$HOME/.#{file}" "$HOME/_dot_backups/#{timestamp}/#{file}"}
-	  system %Q{rm "$HOME/.#{file}"}
-	end
+    puts "Backing up $HOME/.#{file} to $HOME/_dot_backups/#{timestamp}/#{file}"
+    system %Q{cp -RLi "$HOME/.#{file}" "$HOME/_dot_backups/#{timestamp}/#{file}"}
+    system %Q{rm "$HOME/.#{file}"}
+  end
   link_file(file)
 end
 
